@@ -79,7 +79,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_
 
 input = X.shape[1]
 output = Y.shape[1]
-
+print(output)
 from keras.models import Sequential
 from keras.layers import Dense,Dropout
 
@@ -103,7 +103,7 @@ classifier.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['
 from keras.callbacks import ReduceLROnPlateau
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,patience=5, min_lr=0.001)
 # Fitting the ANN to the Training set.
-classifier.fit(X_train, y_train, batch_size=1000, epochs=100,callbacks=[reduce_lr])
+classifier.fit(X_train, y_train, batch_size=1000, epochs=50,callbacks=[reduce_lr])
 classifier.save('NewsClassifier.h5')
 
 
