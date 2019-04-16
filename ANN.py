@@ -88,11 +88,12 @@ from keras.layers import Dense,Dropout
 classifier = Sequential()
 
 # Adding the input layer and the first hidden layer
-classifier.add(Dense(units=600, kernel_initializer='uniform', activation='relu', input_dim=input))
-classifier.add(Dropout(0.3))
-classifier.add(Dense(units=350, kernel_initializer='uniform', activation='relu'))
-classifier.add(Dropout(0.3))
-classifier.add(Dense(units=200, kernel_initializer='uniform', activation='relu'))
+classifier.add(Dense(units=900, kernel_initializer='uniform', activation='relu', input_dim=input))
+classifier.add(Dropout(0.2))
+classifier.add(Dense(units=650, kernel_initializer='uniform', activation='relu'))
+classifier.add(Dropout(0.2))
+classifier.add(Dense(units=500, kernel_initializer='uniform', activation='relu'))
+
 classifier.add(Dense(units=output, kernel_initializer='uniform', activation='softmax'))
 
 # Compiling the ANN
@@ -102,7 +103,7 @@ classifier.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['
 from keras.callbacks import ReduceLROnPlateau
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,patience=5, min_lr=0.001)
 # Fitting the ANN to the Training set.
-classifier.fit(X_train, y_train, batch_size=1000, epochs=1,callbacks=[reduce_lr])
+classifier.fit(X_train, y_train, batch_size=1000, epochs=100,callbacks=[reduce_lr])
 classifier.save('NewsClassifier.h5')
 
 
