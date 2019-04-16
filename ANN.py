@@ -102,7 +102,7 @@ classifier.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['
 from keras.callbacks import ReduceLROnPlateau
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,patience=5, min_lr=0.001)
 # Fitting the ANN to the Training set.
-classifier.fit(X_train, y_train, batch_size=1000, epochs=100,callbacks=[reduce_lr])
+classifier.fit(X_train, y_train, batch_size=1000, epochs=1,callbacks=[reduce_lr])
 classifier.save('NewsClassifier.h5')
 
 
@@ -112,8 +112,8 @@ classifier.save('NewsClassifier.h5')
 # from keras.models import load_model
 # classifier = load_model('classifierU.h5')
 
-y_pred = classifier.predict(X_test)
 
+y_pred = classifier.predict(X_test)
 print("PREDICTED VALUES \n")
 inv = lb.inverse_transform(y_pred)
 print(inv)
@@ -125,7 +125,9 @@ inv = lb.inverse_transform(y_test)
 result1 = labelencoder_Y.inverse_transform(inv)
 print(result1)
 
-
+from sklearn.metrics import accuracy_score
+accuracyScore = accuracy_score(result1, result)
+print("accuracy percentage=", accuracyScore * 100, "%")
 
 import csv
 lines = [(result1[i-1], result[i-1]) for i in range(1, len(result)+1)]
