@@ -13,13 +13,58 @@ df = df.dropna()
 
 #drop the rows where content exceeds 100000 words
 df = df.drop(df[df['content'].map(len) > 100000].index)
+
+df['content'] = df['content'].str.lower().str.split()
+from nltk.corpus import stopwords
+stop = stopwords.words('english')
+df['content'] = df['content'].apply(lambda x: [item for item in x if item not in stop])
+df['content'] = df['content'].apply(' '.join)
 # df.drop(indexNames , inplace=True)
 
+print(df.groupby('publication').count())
+
+#Sampling
+Atlantic = df[df['publication'] == "Atlantic"]
+Breitbart = df[df['publication'] == "Breitbart"]
+BusinessInsider  = df[df['publication'] == "Business Insider"]
+BuzzfeedNews = df[df['publication'] == "Buzzfeed News"]
+CNN = df[df['publication'] == "CNN"]
+FoxNews = df[df['publication'] == "Fox News"]
+Guardian = df[df['publication'] == "Guardian"]
+NPR = df[df['publication'] == "NPR"]
+NationalReview = df[df['publication'] == "National Review"]
+NewYorkPost  = df[df['publication'] == "New York Post"]
+NewYorkTimes  = df[df['publication'] == "New York Times"]
+Reuters  = df[df['publication'] == "Reuters"]
+TalkingPointsMemo   = df[df['publication'] == "Talking Points Memo"]
+Vox  = df[df['publication'] == "Vox"]
+WashingtonPost  = df[df['publication'] == "Washington Post"]
 
 
-print(df.shape)
-X = df.iloc[:, 2].values
-Y = df.iloc[:, 1].values
+AtlanticO = Atlantic.sample(8000, replace=True)
+BreitbartU = Breitbart.sample(10000)
+BusinessInsiderO = BusinessInsider.sample(8000, replace=True)
+BuzzfeedNewsO = BuzzfeedNews.sample(7500, replace=True)
+FoxNewsO = FoxNews.sample(7500, replace=True)
+GuardianO = Guardian.sample(9000, replace=True)
+NPRU = NPR.sample(11000)
+NationalReviewO = NationalReview.sample(9000, replace=True)
+NewYorkPostU = NewYorkPost.sample(11000)
+NewYorkTimesO = NewYorkTimes.sample(9000, replace=True)
+TalkingPointsMemoO = TalkingPointsMemo.sample(8000, replace=True)
+VoxO = Vox.sample(8000, replace=True)
+
+df1 = pd.concat([AtlanticO, BreitbartU, BusinessInsiderO, BuzzfeedNewsO,
+FoxNewsO,GuardianO,NationalReviewO,NewYorkPostU,NewYorkTimesO,TalkingPointsMemoO,VoxO,
+                          CNN,NPRU,Reuters,WashingtonPost], axis=0)
+
+
+print(df1.groupby('publication').count())
+
+
+# print(df.shape)
+X = df1.iloc[:, 2].values
+Y = df1.iloc[:, 1].values
 
 
 print(  (max([len(x) for x in X]))    )
@@ -29,7 +74,7 @@ from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.preprocessing import LabelEncoder
 import pickle
 
-count_vect = TfidfVectorizer(max_df = 0.9, min_df = 0.05).fit(X)
+count_vect = TfidfVectorizer(max_df = 0.5,min_df = 0.08).fit(X)
 X = count_vect.transform(X)
 with open('countVect.pickle', 'wb') as handle:
     pickle.dump(count_vect, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -55,31 +100,17 @@ y = Y.reshape(-1, 1)  # Because Y has only one column
 from sklearn.preprocessing import LabelBinarizer,OneHotEncoder
 lb = OneHotEncoder(categories='auto')
 Y = lb.fit_transform(y).toarray()
+
 with open('labelbinizer.pickle', 'wb') as handle:
     pickle.dump(lb, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(X, Y, test_size=0.2, random_state=0)
 
-# #Random Shuffle (Manually coded)
-# from sklearn.utils import shuffle
-# df = shuffle(df)
-# print(df)
-#
-# #Random Selection from shuffled data
-# def randomSelection(matrix, target, test_proportion):
-#     ratio = int(matrix.shape[0]/test_proportion)
-#     X_train = matrix[ratio:,:]
-#     X_test =  matrix[:ratio,:]
-#     Y_train = target[ratio:,:]
-#     Y_test =  target[:ratio,:]
-#     return X_train, X_test, Y_train, Y_test
-#
-# X_train, X_test, y_train, y_test = randomSelection(X, Y, 8)
-
 input = X.shape[1]
 output = Y.shape[1]
-print(output)
+print(X.shape)
+print(Y.shape)
 from keras.models import Sequential
 from keras.layers import Dense,Dropout
 
@@ -88,12 +119,12 @@ from keras.layers import Dense,Dropout
 classifier = Sequential()
 
 # Adding the input layer and the first hidden layer
-classifier.add(Dense(units=900, kernel_initializer='uniform', activation='relu', input_dim=input))
+classifier.add(Dense(units=650, kernel_initializer='uniform', activation='relu', input_dim=input))
 classifier.add(Dropout(0.2))
-classifier.add(Dense(units=650, kernel_initializer='uniform', activation='relu'))
+classifier.add(Dense(units=450, kernel_initializer='uniform', activation='relu'))
 classifier.add(Dropout(0.2))
-classifier.add(Dense(units=500, kernel_initializer='uniform', activation='relu'))
-
+classifier.add(Dense(units=350, kernel_initializer='uniform', activation='relu'))
+classifier.add(Dropout(0.1))
 classifier.add(Dense(units=output, kernel_initializer='uniform', activation='softmax'))
 
 # Compiling the ANN
@@ -103,7 +134,8 @@ classifier.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['
 from keras.callbacks import ReduceLROnPlateau
 reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,patience=5, min_lr=0.001)
 # Fitting the ANN to the Training set.
-classifier.fit(X_train, y_train, batch_size=1000, epochs=50,callbacks=[reduce_lr])
+classifier.fit(X_train, y_train, batch_size=500, epochs=100
+               ,callbacks=[reduce_lr])
 classifier.save('NewsClassifier.h5')
 
 
