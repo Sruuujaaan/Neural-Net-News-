@@ -2,7 +2,7 @@
 Predict Origin of website by looking at an article.
 
 
-accuracy percentage= 70.13% (approx) On unseen data of 28500 rows
+accuracy percentage= 78.66269470964036% (approx) On unseen data of 28500 rows
 
 
 
